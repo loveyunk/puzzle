@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>拼图游戏</title>
     <style>
@@ -110,11 +108,9 @@
 
     <script>
 
-
         let time = 0,   // 保存定时时间
             pause = true, // 是否暂停，true表示暂停
             set_timer;
-
 
         // DIV可移动位置编号
         let d_direct = [
@@ -144,12 +140,10 @@
             [300,300]
         ];
 
-
         let d = new Array(10);
 
         // 默认按顺序排好，0表示空白
         d[1]=1;d[2]=2;d[3]=3;d[4]=4;d[5]=5;d[6]=6;d[7]=7;d[8]=8;d[9]=0;
-
 
         // 移动函数
         function move (id) { // 传入的id是DIV上的数字
@@ -187,7 +181,6 @@
                     alert('恭喜你，成功了！');
                 }
             }
-
         }
 
         // 判断DIV是否可移动，如果可移动，则返回可以去的位置，如果不可移动，则返回-1
