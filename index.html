@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>拼图游戏</title>
+    <style>
+        body {
+            margin: 0;
+            background: #fff;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+        }
+        #container {
+            width: 620px;
+            height: 450px;
+            margin: 100px auto 0;
+            position: relative;
+        }
+        #game {
+            position: absolute;
+            width:450px;
+            height: 450px;
+            background-color: #ffe171;
+            box-shadow: 0 0 10px #ffe171;
+            border-radius: 5px;
+        }
+        #game div {
+            position: absolute;
+            width: 149px;
+            height: 149px;
+            box-shadow: 1px 1px 2px #777;
+            background-color: #20a6fa;
+            color: #fff;
+            font-size: 150px;
+            text-align: center;
+            line-height: 149px;
+            cursor: pointer;
+            transition: all .3s ease;
+        }
+        #game div:hover {
+            color: #ffe171;
+        }
+        #d1{
+            left: 0;
+        }
+        #d2{
+            left: 150px;
+        }
+        #d3{
+            left: 300px;
+        }
+        #d4{
+            top: 150px;
+        }
+        #d5{
+            top: 150px;
+            left: 150px;
+        }
+        #d6{
+            top: 150px;
+            left: 300px;
+        }
+        #d7{
+            top: 300px;
+        }
+        #d8{
+            left: 150px;
+            top: 300px;
+        }
+        #control {
+            width: 150px;
+            height: 450px;
+            float: right;
+        }
+        #control .btn {
+            width: 100px;
+            line-height: 36px;
+            background-color: #20a6fa;
+            color: #000;
+            text-shadow: 1px 1px 2px #ffe171;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="game">
+            <div id="d1" onclick="move(1)">1</div>
+            <div id="d2" onclick="move(2)">2</div>
+            <div id="d3" onclick="move(3)">3</div>
+            <div id="d4" onclick="move(4)">4</div>
+            <div id="d5" onclick="move(5)">5</div>
+            <div id="d6" onclick="move(6)">6</div>
+            <div id="d7" onclick="move(7)">7</div>
+            <div id="d8" onclick="move(8)">8</div>
+        </div>
+        <div id="control">
+            <p>
+                <span>总用时:</span>
+                <span id="timer"></span>
+            </p>
+            <p id="start" class="btn" onclick="start()">开始</p>
+            <p id="reset" class="btn" onclick="reset()">重置</p>
+        </div>
+    </div>
+
+    <script>
+
+
+        let time = 0,   // 保存定时时间
+            pause = true, // 是否暂停，true表示暂停
+            set_timer;
+
+
+        // DIV可移动位置编号
+        let d_direct = [
+            [0],
+            [2,4],
+            [1,3,5],
+            [2,6],
+            [1,5,7],
+            [2,4,6,8],
+            [3,5,9],
+            [4,8],
+            [5,7,9],
+            [6,8]
+        ];
+
+        // DIV位置
+        let d_posXY = [
+            [0],
+            [0,0],
+            [150,0],
+            [300,0],
+            [0,150],
+            [150,150],
+            [300,150],
+            [0,300],
+            [150,300],
+            [300,300]
+        ];
+
+
+        let d = new Array(10);
+
+        // 默认按顺序排好，0表示空白
+        d[1]=1;d[2]=2;d[3]=3;d[4]=4;d[5]=5;d[6]=6;d[7]=7;d[8]=8;d[9]=0;
+
+
+        // 移动函数
+        function move (id) { // 传入的id是DIV上的数字
+            let i,
+                j,
+                target_d,  // 保存可以移动去的编号，－1表示不能移动
+                finish_flag = true; //游戏是否完成标志，true表示完成
+
+            // 循环得到i是DIV的位置
+            for (i = 1; i < 10; i++) {
+                if (d[i] === id) {
+                    break;
+                }
+            }
+
+            target_d = whereCanTo(i);
+
+            if (target_d !== -1) {
+                d[i] = 0;  // 把当前DIV位置设置为0，因为当前DIV已经移走
+                d[target_d] = id; // 把目标DIV设置为被点击DIV的编号
+                document.getElementById('d'+id).style.left = d_posXY[target_d][0] + 'px';
+                document.getElementById('d'+id).style.top = d_posXY[target_d][1] + 'px';
+            }
+
+            for (j = 1; j < 9; j++) {
+                if (d[j] !== j) {
+                    finish_flag = false;
+                    break;
+                }
+            }
+
+            if (finish_flag) {
+                if (!pause) {
+                    start();
+                    alert('恭喜你，成功了！');
+                }
+            }
+
+        }
+
+        // 判断DIV是否可移动，如果可移动，则返回可以去的位置，如果不可移动，则返回-1
+        function whereCanTo (cur_div) {
+            let j,
+                len,
+                move_flag = false;
+
+            // 把所有可以去的位置循环遍历一次
+            for (j = 0, len = d_direct[cur_div].length; j < len; j++) {
+                // 如果目标值为0，说明目标位置没有DIV，则可以移动，跳出循环
+                if (d[ d_direct[cur_div][j] ] === 0) {
+                    move_flag = true;
+                    break;
+                }
+            }
+
+            // 可以移动，则返回目标位置的编号，否则返回-1，表示不可以移动
+            if (move_flag === true) {
+                return d_direct[cur_div][j];
+            } else {
+                return -1;
+            }
+        }
+
+        // 定时函数，每秒执行一次
+        function timer () {
+            time++;  // 一秒钟加一，单位是秒
+            let min = parseInt(time/60); // 把秒转换成分钟
+            let sec = time % 60;  // 取余就是秒
+            document.getElementById('timer').innerHTML = min+'分'+sec+'秒'; // 然后把时间显示出来
+        }
+
+        function start () {
+            if (pause) {
+                document.getElementById('start').innerHTML = '暂停';
+                pause = false;  // 暂停表示设置为false
+                set_timer = setInterval(timer, 1000); // 启动定时
+            } else {
+                document.getElementById('start').innerHTML = '开始';
+                pause = true;
+                clearInterval(set_timer);
+            }
+        }
+
+        // 重置函数
+        function reset () {
+            time = 0;  // 把时间设置为0
+            random_d();  // 把方块随机打乱
+            if (pause) {
+                start();
+            }
+        }
+
+        // 随机打乱方块函数，思路是从第九块开始，随机生成一个数，然后他们两块对调一下
+        function random_d () {
+            let i,
+                rand,
+                tmp;
+
+            for (i = 9; i > 1; i--) {
+                rand = Math.floor(Math.random()*(i-1) + 1); // 产生1~i的随机数
+                // 把当前的DIV位置设置为随机产生的DIV的位置
+                if (d[i]!==0) {
+                    document.getElementById('d'+d[i]).style.left = d_posXY[rand][0]+'px';
+                    document.getElementById('d'+d[i]).style.top = d_posXY[rand][1]+'px';
+                }
+
+                // 把随机产生的DIV的位置设置为当前的DIV的位置
+                if(d[rand]!==0){
+                    document.getElementById("d"+d[rand]).style.left=d_posXY[i][0]+"px";
+                    document.getElementById("d"+d[rand]).style.top=d_posXY[i][1]+"px";
+                }
+
+                // 然后把它们两个的DIV保存的编号对调一下
+                tmp = d[rand];
+                d[rand] = d[i];
+                d[i] = tmp;
+            }
+        }
+
+        window.onload = function () {
+            reset();
+        }
+
+    </script>
+</body>
+</html>
